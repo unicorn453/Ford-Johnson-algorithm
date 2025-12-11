@@ -96,41 +96,63 @@ size_t find_max_iterations(size_t size)
 
 void PmergeMe::mergeSortVec()
 {
-
     size_t size = vec.size();
-    size_t pends = size % 4;
+    size_t pends = size % 2;
     size_t maxPairsElements = size - pends;
 
-    size_t max_iterations = find_max_iterations(maxPairsElements);
 
-    for (size_t i = 0; i < maxPairsElements + 1; i += 2)
+    for (size_t i = 0; i < maxPairsElements; i += 2)
     {
         if (vec[i] > vec[i + 1])
-        {
             std::swap(vec[i], vec[i + 1]);
-        }
+    }
+    
+    std::vector<int> bigs;
+    std::vector<int> smalls;
+    for (size_t i = 0; i < maxPairsElements; i += 2)
+    {
+        smalls.push_back(vec[i]);
+        bigs.push_back(vec[i + 1]);
     }
 
-    for (size_t i = 1; i < max_iterations; i++)
-    {
-        size_t pair_size = 1 << i; // 2^i
-        for (size_t j = 1; j < maxPairsElements + 1; j += pair_size)
-        {
-            size_t a = j;
-            size_t b = j + pair_size;
+    size_t numPairs = bigs.size();
+    size_t max_iterations = find_max_iterations(numPairs);
 
-            size_t left = a;
-            size_t right = b;
-            if (vec[left] < vec[right])
+    for (size_t level = 0; level < max_iterations; level++)
+    {
+        size_t block = 1 << level;
+
+        for (size_t i = 0; i + 2 * block <= numPairs; i += 2 * block)
+        {
+            size_t L = i;
+            size_t R = i + block;
+            size_t end = i + 2 * block;
+
+            
+            if (bigs[L + block - 1] > bigs[R + block - 1])
             {
-                std::rotate(vec.begin(),
-                            vec.begin() + left + 1,
-                            vec.begin() + right + 1);
+                std::rotate(
+                    bigs.begin() + L,
+                    bigs.begin() + R,
+                    bigs.begin() + end
+                );
+                std::rotate(
+                    smalls.begin() + L,
+                    smalls.begin() + R,
+                    smalls.begin() + end
+                );
             }
             _comparisons++;
         }
     }
+
+    for (size_t i = 0; i < bigs.size(); i++)
+    {
+        vec[i * 2] = smalls[i];
+        vec[i * 2 + 1] = bigs[i];
+    }
 }
+
 
 void PmergeMe::vectorSort()
 {
