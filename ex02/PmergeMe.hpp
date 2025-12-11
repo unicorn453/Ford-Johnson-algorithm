@@ -3,6 +3,13 @@
 #include <string>
 #include <iostream>
 
+typedef struct {
+    int *a;
+    int *b;
+    int iterations;
+    int pair_size;
+} Pair;
+
 
 class PmergeMe {
 public:
@@ -15,6 +22,9 @@ public:
     void vectorSort();
     void dequeSort();
 private:
+    // Pair* createPairsVec();
+    void mergeSortVec();
+    Pair* createPairsDeq(std::deque<int> &arr, int size);
     std::vector<int> vec;
     std::deque<int> deq;
     int binaryCompareVec(int value, int a, int b);
