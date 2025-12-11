@@ -1,5 +1,7 @@
 #include <vector>
 #include <deque>
+#include <string>
+#include <iostream>
 
 
 class PmergeMe {
@@ -15,5 +17,7 @@ public:
 private:
     std::vector<int> vec;
     std::deque<int> deq;
-   
+    int binaryCompareVec(int value, int a, int b);
+    int binaryCompareDeq(int value, int a, int b);
+    int _comparisons;
 };
