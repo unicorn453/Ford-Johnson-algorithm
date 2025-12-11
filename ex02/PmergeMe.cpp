@@ -100,14 +100,10 @@ void PmergeMe::mergeSortVec()
     size_t size = vec.size();
     size_t pends = size % 4;
     size_t maxPairsElements = size - pends;
-    // Pair* pairs = new Pair;
-    // pairs->a = 0;
-    // pairs->b = 0;
-    // pairs->pair_size = 0;
-    // pairs->iterations = 0;
+
     size_t max_iterations = find_max_iterations(maxPairsElements);
 
-    for (size_t i = 0; i < maxPairsElements; i += 2)
+    for (size_t i = 0; i < maxPairsElements + 1; i += 2)
     {
         if (vec[i] > vec[i + 1])
         {
@@ -115,17 +111,16 @@ void PmergeMe::mergeSortVec()
         }
     }
 
-    for (size_t i = 1; i < max_iterations + 1; i++)
+    for (size_t i = 1; i < max_iterations; i++)
     {
         size_t pair_size = 1 << i; // 2^i
-        for (size_t j = 1; j < maxPairsElements - 1; j += pair_size)
+        for (size_t j = 1; j < maxPairsElements + 1; j += pair_size)
         {
             size_t a = j;
             size_t b = j + pair_size;
 
             size_t left = a;
             size_t right = b;
-            std::cout << "left element: " << vec[left] << " right element: " << vec[right] << std::endl;
             if (vec[left] < vec[right])
             {
                 std::rotate(vec.begin(),
