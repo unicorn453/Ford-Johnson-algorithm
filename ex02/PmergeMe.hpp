@@ -22,12 +22,17 @@ public:
     void vectorSort();
     void dequeSort();
 private:
-    // Pair* createPairsVec();
+    void generatePairsVec(size_t pairSize);
     void mergeSortVec();
-    Pair* createPairsDeq(std::deque<int> &arr, int size);
     std::vector<int> vec;
     std::deque<int> deq;
-    int binaryCompareVec(int value, int a, int b);
+    std::vector<int> pend;
+    std::vector<int> smalls;
+    std::vector<int> bigs;
+    size_t binaryCompareVec(int value, int a, int b);
     int binaryCompareDeq(int value, int a, int b);
+    std::vector<int> insertJacobsthal(
+        const std::vector<int>& bigs,
+        const std::vector<int>& smalls);
     int _comparisons;
 };

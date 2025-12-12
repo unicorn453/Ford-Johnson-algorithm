@@ -43,6 +43,5 @@ int main(int argc, char** argv) {
 
     PmergeMe nums(strInput);
     nums.vectorSort();
-    nums.dequeSort();
     return 0;
 }
