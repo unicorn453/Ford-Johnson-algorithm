@@ -2,6 +2,7 @@
 #include <deque>
 #include <string>
 #include <iostream>
+#include <cmath>
 
 typedef struct {
     int *a;
@@ -31,8 +32,8 @@ private:
     std::vector<int> bigs;
     size_t binaryCompareVec(int value, int a, int b);
     int binaryCompareDeq(int value, int a, int b);
-    std::vector<int> insertJacobsthal(
-        const std::vector<int>& bigs,
-        const std::vector<int>& smalls);
+    void insertJacobsthal(
+        size_t sizePairs
+    );
     int _comparisons;
 };
