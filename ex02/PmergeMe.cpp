@@ -107,23 +107,33 @@ size_t find_max_iterations(size_t size)
 std::vector<size_t> generateJacobsthal(size_t n)
 {
     std::vector<size_t> jac;
+    
     if (n == 0)
+    {
         return jac;
+    }
 
     size_t j0 = 1;
     size_t j1 = 3;
 
     jac.push_back(1);
 
-    if (j1 <= n)
+    if (n >= 2 && j1 <= n)
+    {
         jac.push_back(j1);
+    }
 
     while (true)
     {
         size_t next = j1 + 2 * j0;
+        
         if (next > n)
+        {
             break;
+        }
+        
         jac.push_back(next);
+        
         j0 = j1;
         j1 = next;
     }
@@ -133,9 +143,8 @@ std::vector<size_t> generateJacobsthal(size_t n)
 
 void PmergeMe::insertJacobsthal(size_t sizePairs)
 {
-
-    size_t numPairs = smalls.size();
-    std::vector<size_t> jac = generateJacobsthal(numPairs / 2);
+    size_t originalNumPairs = bigs.size() / sizePairs;
+    std::vector<size_t> jac = generateJacobsthal(originalNumPairs);
 
     size_t vec_size = vec.size();
     size_t maxBlocks = vec_size / sizePairs;
@@ -160,10 +169,12 @@ void PmergeMe::insertJacobsthal(size_t sizePairs)
 
     insertSmalls.clear();
     insertSmalls.reserve(sizePairs);
+    
     for (size_t i = 0; i < sizePairs && i < smalls.size(); ++i)
     {
         insertSmalls.push_back(smalls[i]);
     }
+    
     for (size_t i = 0; i < sizePairs && !smalls.empty(); ++i)
     {
         smalls.erase(smalls.begin());
@@ -175,59 +186,25 @@ void PmergeMe::insertJacobsthal(size_t sizePairs)
         size_t left = 0;
         size_t right = mainChain.size();
 
-        std::cout << "DEBUG: Block insertion - looking for position for block with max val=" << val << std::endl;
-        std::cout << "DEBUG: Block contents: ";
-        for (size_t j = 0; j < insertSmalls.size(); j++)
-            std::cout << insertSmalls[j] << " ";
-        std::cout << std::endl;
-
         while (left < right)
         {
             size_t mid = (left + right) / 2;
             _comparisons++;
-            std::cout << "DEBUG: Block binary search - left=" << left << ", right=" << right << ", mid=" << mid << ", mainChain[mid]=" << mainChain[mid] << ", val=" << val << std::endl;
             if (mainChain[mid] < val)
                 left = mid + 1;
             else
                 right = mid;
         }
 
-        std::cout << "DEBUG: Inserting block at position " << left << std::endl;
-        std::cout << "DEBUG: MainChain before block insertion (size=" << mainChain.size() << "): ";
-        for (size_t j = 0; j < mainChain.size(); j++)
-            std::cout << mainChain[j] << " ";
-        std::cout << std::endl;
-
         mainChain.insert(mainChain.begin() + left, insertSmalls.begin(), insertSmalls.end());
         
-        std::cout << "DEBUG: MainChain after block insertion (size=" << mainChain.size() << "): ";
-        for (size_t j = 0; j < mainChain.size(); j++)
-            std::cout << mainChain[j] << " ";
-        std::cout << std::endl;
-
         insertSmalls.clear();
     }
 
-    std::vector<bool> inserted(numPairs, false);
+    std::vector<bool> inserted(originalNumPairs, false);
     inserted[0] = true;
 
-    std::cout << "DEBUG: Starting Jacobsthal insertion with " << numPairs << " pairs" << std::endl;
-    std::cout << "DEBUG: Generated Jacobsthal sequence: ";
-    for (size_t i = 0; i < jac.size(); i++)
-        std::cout << jac[i] << " ";
-    std::cout << std::endl;
-
-    std::cout << "DEBUG: Initial mainChain: ";
-    for (size_t i = 0; i < mainChain.size(); i++)
-        std::cout << mainChain[i] << " ";
-    std::cout << std::endl;
-
-    std::cout << "DEBUG: Initial smalls: ";
-    for (size_t i = 0; i < smalls.size(); i++)
-        std::cout << smalls[i] << " ";
-    std::cout << std::endl;
-
-    for (size_t i = 1; i < jac.size() && jac[i] <= numPairs; ++i)
+    for (size_t i = 1; i < jac.size() && jac[i] <= originalNumPairs; ++i)
     {
         size_t jacobIndex = jac[i] - 1;
         size_t prevJacob = jac[i - 1] - 1;
@@ -246,25 +223,15 @@ void PmergeMe::insertJacobsthal(size_t sizePairs)
                 insertSmalls.clear();
                 size_t start_idx = k * sizePairs;
 
-                std::cout << "DEBUG: Processing jacobIndex=" << jacobIndex << ", k=" << k << ", start_idx=" << start_idx << std::endl;
-                std::cout << "DEBUG: smalls.size()=" << smalls.size() << ", sizePairs=" << sizePairs << std::endl;
-
                 for (size_t s = 0; s < sizePairs && (start_idx + s) < smalls.size(); ++s)
                 {
                     insertSmalls.push_back(smalls[start_idx + s]);
                 }
 
-                std::cout << "DEBUG: insertSmalls contains: ";
-                for (size_t i = 0; i < insertSmalls.size(); i++)
-                    std::cout << insertSmalls[i] << " ";
-                std::cout << std::endl;
-
                 if (start_idx < smalls.size())
                 {
                     size_t elements_to_remove = std::min(sizePairs, smalls.size() - start_idx);
-                    std::cout << "DEBUG: Removing " << elements_to_remove << " elements from smalls starting at " << start_idx << std::endl;
                     smalls.erase(smalls.begin() + start_idx, smalls.begin() + start_idx + elements_to_remove);
-                    std::cout << "DEBUG: smalls.size() after removal: " << smalls.size() << std::endl;
                 }
 
                 if (!insertSmalls.empty())
@@ -273,69 +240,47 @@ void PmergeMe::insertJacobsthal(size_t sizePairs)
                     size_t left = 0;
                     size_t right = mainChain.size();
 
-                    std::cout << "DEBUG: Looking for insertion position for val=" << val << " in mainChain of size " << mainChain.size() << std::endl;
-
                     while (left < right)
                     {
                         size_t mid = (left + right) / 2;
                         _comparisons++;
-                        std::cout << "DEBUG: Binary search - left=" << left << ", right=" << right << ", mid=" << mid << ", mainChain[mid]=" << mainChain[mid] << ", val=" << val << std::endl;
                         if (mainChain[mid] < val)
                             left = mid + 1;
                         else
                             right = mid;
                     }
 
-                    std::cout << "DEBUG: Inserting at position " << left << " in mainChain" << std::endl;
-                    std::cout << "DEBUG: MainChain before insertion (size=" << mainChain.size() << "): ";
-                    for (size_t i = 0; i < mainChain.size(); i++)
-                        std::cout << mainChain[i] << " ";
-                    std::cout << std::endl;
-
                     mainChain.insert(mainChain.begin() + left, insertSmalls.begin(), insertSmalls.end());
                     
-                    std::cout << "DEBUG: MainChain after insertion (size=" << mainChain.size() << "): ";
-                    for (size_t i = 0; i < mainChain.size(); i++)
-                        std::cout << mainChain[i] << " ";
-                    std::cout << std::endl;
-                    
                     inserted[k] = true;
-                    std::cout << "DEBUG: Marked k=" << k << " as inserted" << std::endl;
                 }
             }
         }
     }
 
-    for (size_t i = 0; i < numPairs; ++i)
+    while (!smalls.empty())
     {
-        if (!inserted[i])
+        int val = smalls[0];
+        size_t left = 0;
+        size_t right = mainChain.size();
+
+        while (left < right)
         {
-            std::cout << "DEBUG: Processing remaining uninserted element at index " << i << std::endl;
-            int val = smalls[i];
-            size_t left = 0;
-            size_t right = mainChain.size();
-
-            std::cout << "DEBUG: Final insertion - looking for position for val=" << val << std::endl;
-
-            while (left < right)
-            {
-                size_t mid = (left + right) / 2;
-                _comparisons++;
-                std::cout << "DEBUG: Final binary search - left=" << left << ", right=" << right << ", mid=" << mid << ", mainChain[mid]=" << mainChain[mid] << ", val=" << val << std::endl;
-                if (mainChain[mid] < val)
-                    left = mid + 1;
-                else
-                    right = mid;
-            }
-
-            std::cout << "DEBUG: Final insertion at position " << left << std::endl;
-            mainChain.insert(mainChain.begin() + left, val);
-            inserted[i] = true;
-            std::cout << "DEBUG: Final mainChain after insertion: ";
-            for (size_t j = 0; j < mainChain.size(); j++)
-                std::cout << mainChain[j] << " ";
-            std::cout << std::endl;
+            size_t mid = (left + right) / 2;
+            _comparisons++;
+            if (mainChain[mid] < val)
+                left = mid + 1;
+            else
+                right = mid;
         }
+
+        mainChain.insert(mainChain.begin() + left, val);
+        smalls.erase(smalls.begin());
+    }
+
+    if (!pend.empty())
+    {
+        mainChain.insert(mainChain.end(), pend.begin(), pend.end());
     }
 
     vec = mainChain;
@@ -397,19 +342,34 @@ void PmergeMe::mergeSortVec()
 
 void PmergeMe::generatePairsVec(size_t pairSize)
 {
-
     bigs.clear();
     smalls.clear();
-    pend.clear();
-
-    size_t size = vec.size();
+   
+    size_t mainChainSize = vec.size();
+    if (!pend.empty()) {
+        size_t pendStart = vec.size();
+        for (size_t i = 0; i < vec.size(); i++) {
+            bool foundInPend = false;
+            for (size_t j = 0; j < pend.size(); j++) {
+                if (vec[i] == pend[j]) {
+                    foundInPend = true;
+                    break;
+                }
+            }
+            if (foundInPend) {
+                pendStart = i;
+                break;
+            }
+        }
+        mainChainSize = pendStart;
+    }
+    
     size_t blockSize = pairSize * 2;
-    size_t maxBlockElements = (size / blockSize) * blockSize; // Total elements that can form complete blocks
-    size_t pendsCount = size - maxBlockElements;
+    size_t maxBlockElements = (mainChainSize / blockSize) * blockSize;
+    size_t newPendsCount = mainChainSize - maxBlockElements;
 
     for (size_t i = 0; i < maxBlockElements; i += blockSize)
     {
-
         std::vector<int> block1(vec.begin() + i, vec.begin() + i + pairSize);
         std::vector<int> block2(vec.begin() + i + pairSize, vec.begin() + i + blockSize);
 
@@ -432,13 +392,78 @@ void PmergeMe::generatePairsVec(size_t pairSize)
         }
     }
 
-    if (pendsCount > 0)
+
+    if (newPendsCount > 0)
     {
-        for (size_t i = maxBlockElements; i < size; i++)
+        for (size_t i = maxBlockElements; i < mainChainSize; i++)
         {
             pend.push_back(vec[i]);
         }
     }
+}
+
+void PmergeMe::rearrangeBlocksByLastElement(size_t pairSize)
+{
+    if (vec.size() < pairSize * 2)
+        return;
+
+    size_t mainChainSize = vec.size();
+    if (!pend.empty()) {
+        size_t pendStart = vec.size();
+        for (size_t i = 0; i < vec.size(); i++) {
+            bool foundInPend = false;
+            for (size_t j = 0; j < pend.size(); j++) {
+                if (vec[i] == pend[j]) {
+                    foundInPend = true;
+                    break;
+                }
+            }
+            if (foundInPend) {
+                pendStart = i;
+                break;
+            }
+        }
+        mainChainSize = pendStart;
+    }
+    
+    size_t numCompleteBlocks = mainChainSize / pairSize;
+    
+    std::vector<std::pair<int, size_t> > blockInfo;
+    for (size_t i = 0; i < numCompleteBlocks; i++)
+    {
+        size_t lastElementIdx = (i + 1) * pairSize - 1;
+        if (lastElementIdx < mainChainSize)
+        {
+            int lastElement = vec[lastElementIdx];
+            blockInfo.push_back(std::make_pair(lastElement, i));
+        }
+    }
+
+    std::sort(blockInfo.begin(), blockInfo.end());
+
+    std::vector<int> tempVec;
+    tempVec.reserve(vec.size());
+
+    for (size_t i = 0; i < blockInfo.size(); i++)
+    {
+        size_t blockIdx = blockInfo[i].second;
+        size_t startIdx = blockIdx * pairSize;
+        
+        for (size_t j = 0; j < pairSize && (startIdx + j) < mainChainSize; j++)
+        {
+            tempVec.push_back(vec[startIdx + j]);
+        }
+    }
+
+    size_t remainingStart = numCompleteBlocks * pairSize;
+    if (remainingStart < mainChainSize)
+    {
+        for (size_t i = remainingStart; i < mainChainSize; i++)
+        {
+            tempVec.push_back(vec[i]);
+        }
+    }
+    vec = tempVec;
 }
 
 void PmergeMe::vectorSort()
@@ -455,7 +480,11 @@ void PmergeMe::vectorSort()
     {
         generatePairsVec(pow(2, level));
         insertJacobsthal(pow(2, level));
+        rearrangeBlocksByLastElement(pow(2, level));
     }
+
+    generatePairsVec(1);
+    insertJacobsthal(1);
 
     std::cout << "Vector sorted with " << _comparisons << " comparisons." << std::endl;
     std::cout << "Sorted vector: ";

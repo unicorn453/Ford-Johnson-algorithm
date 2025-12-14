@@ -25,6 +25,7 @@ public:
 private:
     void generatePairsVec(size_t pairSize);
     void mergeSortVec();
+    void rearrangeBlocksByLastElement(size_t pairSize);
     std::vector<int> vec;
     std::deque<int> deq;
     std::vector<int> pend;
