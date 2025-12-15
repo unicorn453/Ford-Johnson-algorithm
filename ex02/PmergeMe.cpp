@@ -180,20 +180,9 @@ void PmergeMe::insertJacobsthal(size_t sizePairs)
     if (!insertSmalls.empty())
     {
         int val = insertSmalls[insertSmalls.size() - 1];
-        size_t left = 0;
-        size_t right = mainChain.size();
+        size_t pos = binaryCompareVec(val, 0, mainChain.size());
 
-        while (left < right)
-        {
-            size_t mid = (left + right) / 2;
-            _comparisons++;
-            if (mainChain[mid] < val)
-                left = mid + 1;
-            else
-                right = mid;
-        }
-
-        mainChain.insert(mainChain.begin() + left, insertSmalls.begin(), insertSmalls.end());
+        mainChain.insert(mainChain.begin() + pos, insertSmalls.begin(), insertSmalls.end());
 
         insertSmalls.clear();
     }
@@ -234,20 +223,9 @@ void PmergeMe::insertJacobsthal(size_t sizePairs)
                 if (!insertSmalls.empty())
                 {
                     int val = insertSmalls[0];
-                    size_t left = 0;
-                    size_t right = mainChain.size();
+                    size_t pos = binaryCompareVec(val, 0, mainChain.size());
 
-                    while (left < right)
-                    {
-                        size_t mid = (left + right) / 2;
-                        _comparisons++;
-                        if (mainChain[mid] < val)
-                            left = mid + 1;
-                        else
-                            right = mid;
-                    }
-
-                    mainChain.insert(mainChain.begin() + left, insertSmalls.begin(), insertSmalls.end());
+                    mainChain.insert(mainChain.begin() + pos, insertSmalls.begin(), insertSmalls.end());
 
                     inserted[k] = true;
                 }
@@ -258,20 +236,9 @@ void PmergeMe::insertJacobsthal(size_t sizePairs)
     while (!smalls.empty())
     {
         int val = smalls[0];
-        size_t left = 0;
-        size_t right = mainChain.size();
+        size_t pos = binaryCompareVec(val, 0, mainChain.size());
 
-        while (left < right)
-        {
-            size_t mid = (left + right) / 2;
-            _comparisons++;
-            if (mainChain[mid] < val)
-                left = mid + 1;
-            else
-                right = mid;
-        }
-
-        mainChain.insert(mainChain.begin() + left, val);
+        mainChain.insert(mainChain.begin() + pos, val);
         smalls.erase(smalls.begin());
     }
 
@@ -315,6 +282,7 @@ void PmergeMe::mergeSortVec()
             size_t L = i;
             size_t R = i + block;
 
+            _comparisons++;
             if (bigs[L + block - 1] > bigs[R + block - 1])
             {
                 for (size_t i = L; i < R; i++)
@@ -323,7 +291,6 @@ void PmergeMe::mergeSortVec()
                     std::swap(bigs[i], bigs[i + (R - L)]);
                 }
             }
-            _comparisons++;
         }
     }
 
@@ -476,7 +443,7 @@ void PmergeMe::sortRemainingElements(int valueOdd)
 
     {
         size_t upper = findPairedPosition(0);
-        size_t pos = binaryCompareVec(pend[0], 0, upper);
+        size_t pos = binaryCompareVec(pend[0], 0, std::min(upper, vec.size()));
         vec.insert(vec.begin() + pos, pend[0]);
         inserted[0] = true;
     }
@@ -495,7 +462,16 @@ void PmergeMe::sortRemainingElements(int valueOdd)
                 continue;
 
             size_t upper = findPairedPosition(i);
-            size_t pos = binaryCompareVec(pend[i], 0, upper);
+            size_t searchStart = 0;
+            if (i > 0 && inserted[i-1]) {
+                for (size_t k = 0; k < vec.size(); ++k) {
+                    if (vec[k] == pend[i-1]) {
+                        searchStart = k + 1;
+                        break;
+                    }
+                }
+            }
+            size_t pos = binaryCompareVec(pend[i], searchStart, std::min(upper, vec.size()));
 
             vec.insert(vec.begin() + pos, pend[i]);
             inserted[i] = true;
@@ -507,7 +483,7 @@ void PmergeMe::sortRemainingElements(int valueOdd)
         if (!inserted[i])
         {
             size_t upper = findPairedPosition(i);
-            size_t pos = binaryCompareVec(pend[i], 0, upper);
+            size_t pos = binaryCompareVec(pend[i], 0, std::min(upper, vec.size()));
             vec.insert(vec.begin() + pos, pend[i]);
         }
     }
@@ -554,4 +530,5 @@ void PmergeMe::vectorSort()
 
     std::cout << std::endl;
     std::cout << "Vector comparisons: " << _comparisons << std::endl;
+    std::cout << "vec size: " << vec.size() << std::endl;
 }
