@@ -1,20 +1,28 @@
 #include "PmergeMe.hpp"
 #include <algorithm>
 
-PmergeMe::PmergeMe() : _comparisons(0)
+PmergeMe::PmergeMe() : _comparisons(0), _comparisonsDeq(0)
 {
     bigs.clear();
     smalls.clear();
     pend.clear();
     pairMax.clear();
+    bigsDeq.clear();
+    smallsDeq.clear();
+    pendDeq.clear();
+    pairMaxDeq.clear();
 }
 
-PmergeMe::PmergeMe(std::string input) : _comparisons(0)
+PmergeMe::PmergeMe(std::string input) : _comparisons(0), _comparisonsDeq(0)
 {
     bigs.clear();
     smalls.clear();
     pend.clear();
     pairMax.clear();
+    bigsDeq.clear();
+    smallsDeq.clear();
+    pendDeq.clear();
+    pairMaxDeq.clear();
 
     size_t pos = 0;
     std::string token;
@@ -32,7 +40,7 @@ PmergeMe::PmergeMe(std::string input) : _comparisons(0)
     }
 }
 
-PmergeMe::PmergeMe(const PmergeMe &other) : vec(other.vec), deq(other.deq), pend(other.pend), smalls(other.smalls), bigs(other.bigs), _comparisons(other._comparisons), pairMax(other.pairMax) {}
+PmergeMe::PmergeMe(const PmergeMe &other) : vec(other.vec), deq(other.deq), pend(other.pend), smalls(other.smalls), bigs(other.bigs), pendDeq(other.pendDeq), smallsDeq(other.smallsDeq), bigsDeq(other.bigsDeq), _comparisons(other._comparisons), _comparisonsDeq(other._comparisonsDeq), pairMax(other.pairMax), pairMaxDeq(other.pairMaxDeq) {}
 
 PmergeMe &PmergeMe::operator=(const PmergeMe &other)
 {
@@ -41,37 +49,21 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &other)
         vec = other.vec;
         deq = other.deq;
         _comparisons = other._comparisons;
+        _comparisonsDeq = other._comparisonsDeq;
         bigs = other.bigs;
         smalls = other.smalls;
         pend = other.pend;
+        bigsDeq = other.bigsDeq;
+        smallsDeq = other.smallsDeq;
+        pendDeq = other.pendDeq;
         pairMax = other.pairMax;
+        pairMaxDeq = other.pairMaxDeq;
     }
     return *this;
 }
 
 PmergeMe::~PmergeMe() {}
 
-int PmergeMe::binaryCompareDeq(int value, int a, int b)
-{
-    while (a <= b)
-    {
-        int mid = a + (b - a) / 2;
-        _comparisons++;
-        if (deq[mid] == value)
-        {
-            return mid + 1;
-        }
-        else if (deq[mid] < value)
-        {
-            a = mid + 1;
-        }
-        else
-        {
-            b = mid - 1;
-        }
-    }
-    return a;
-}
 
 size_t PmergeMe::binaryCompareVec(int value, size_t a, size_t b)
 {
@@ -137,7 +129,7 @@ std::vector<size_t> generateJacobsthal(size_t n)
     return jac;
 }
 
-void PmergeMe::insertJacobsthal(size_t sizePairs)
+void PmergeMe::insertJacobsthalVec(size_t sizePairs)
 {
 
     size_t originalNumPairs = smalls.size() / sizePairs;
@@ -357,7 +349,8 @@ void PmergeMe::generatePairsVec(size_t pairSize)
         }
     }
 }
-void PmergeMe::rearrangeBlocksByLastElement(size_t pairSize)
+
+void PmergeMe::rearrangeBlocksByLastElementVec(size_t pairSize)
 {
     if (vec.size() < pairSize * 2)
         return;
@@ -409,7 +402,7 @@ void PmergeMe::rearrangeBlocksByLastElement(size_t pairSize)
     vec = tempVec;
 }
 
-size_t PmergeMe::findPairedPosition(size_t pendIndex)
+size_t PmergeMe::findPairedPositionVec(size_t pendIndex)
 {
     int pairedValue = pairMax[pendIndex];
 
@@ -420,7 +413,7 @@ size_t PmergeMe::findPairedPosition(size_t pendIndex)
            vec.begin();
 }
 
-void PmergeMe::sortRemainingElements(int valueOdd)
+void PmergeMe::sortRemainingElementsVec(int valueOdd)
 {
     if (pend.empty() && valueOdd == -1)
         return;
@@ -442,7 +435,7 @@ void PmergeMe::sortRemainingElements(int valueOdd)
     std::vector<bool> inserted(pend.size(), false);
 
     {
-        size_t upper = findPairedPosition(0);
+        size_t upper = findPairedPositionVec(0);
         size_t pos = binaryCompareVec(pend[0], 0, std::min(upper, vec.size()));
         vec.insert(vec.begin() + pos, pend[0]);
         inserted[0] = true;
@@ -461,7 +454,7 @@ void PmergeMe::sortRemainingElements(int valueOdd)
             if (inserted[i])
                 continue;
 
-            size_t upper = findPairedPosition(i);
+            size_t upper = findPairedPositionVec(i);
             size_t searchStart = 0;
             if (i > 0 && inserted[i-1]) {
                 for (size_t k = 0; k < vec.size(); ++k) {
@@ -482,7 +475,7 @@ void PmergeMe::sortRemainingElements(int valueOdd)
     {
         if (!inserted[i])
         {
-            size_t upper = findPairedPosition(i);
+            size_t upper = findPairedPositionVec(i);
             size_t pos = binaryCompareVec(pend[i], 0, std::min(upper, vec.size()));
             vec.insert(vec.begin() + pos, pend[i]);
         }
@@ -513,22 +506,12 @@ void PmergeMe::vectorSort()
     {
         size_t pairSize = 1 << level;
         generatePairsVec(pairSize);
-        insertJacobsthal(pairSize);
-        rearrangeBlocksByLastElement(pairSize);
+        insertJacobsthalVec(pairSize);
+        rearrangeBlocksByLastElementVec(pairSize);
     }
 
     generatePairsVec(1);
-    insertJacobsthal(1);
-    rearrangeBlocksByLastElement(1);
-    sortRemainingElements(last_element);
-
-
-    for (size_t i = 0; i < vec.size(); i++)
-    {
-        std::cout << vec[i] << " ";
-    }
-
-    std::cout << std::endl;
-    std::cout << "Vector comparisons: " << _comparisons << std::endl;
-    std::cout << "vec size: " << vec.size() << std::endl;
+    insertJacobsthalVec(1);
+    rearrangeBlocksByLastElementVec(1);
+    sortRemainingElementsVec(last_element);
 }

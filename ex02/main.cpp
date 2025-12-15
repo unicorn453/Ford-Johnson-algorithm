@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <ctime>
+#include <iomanip>
 #include "PmergeMe.hpp"
 
 int checkInput(std::string input) {
@@ -8,18 +10,16 @@ int checkInput(std::string input) {
             std::cerr << "Error: Invalid character '" << input[i] << "' found in input." << std::endl;
             return 1;
         }
-        if (input[i] == ' ')
+        if (input[i] == ' ') {
             i++;
+        }
         if (input[i] < '0' || input[i] > '9') {
             std::cerr << "Error: Input must be a positive integer." << std::endl;
             return 1;
         }
     }
     return 0;
-   
 }
-
-
 
 int main(int argc, char** argv) {
 
@@ -41,7 +41,47 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    std::cout << "Before: ";
+    for (int i = 1; i < argc; i++) {
+        std::cout << argv[i];
+        if (i < argc - 1) {
+            std::cout << " ";
+        }
+    }
+    std::cout << std::endl;
+
     PmergeMe nums(strInput);
+    
+    clock_t start = clock();
     nums.vectorSort();
+    clock_t end = clock();
+    double vec_duration = static_cast<double>(end - start) / CLOCKS_PER_SEC * 1000000;
+
+    start = clock();
+    nums.dequeSort();
+    end = clock();
+    double deq_duration = static_cast<double>(end - start) / CLOCKS_PER_SEC * 1000000;
+
+    std::cout << "After: ";
+    std::vector<int> sorted = nums.getVec();
+    for (size_t i = 0; i < sorted.size(); i++) {
+        std::cout << sorted[i];
+        if (i < sorted.size() - 1) {
+            std::cout << " ";
+        }
+    }
+    std::cout << std::endl;
+    std::cout << "Deque sorted output: ";
+    std::deque<int> sortedDeq = nums.getDeq();
+
+    std::cout << std::fixed << std::setprecision(5);
+    std::cout << "Time to process a range of " << sorted.size() 
+              << " elements with std::vector : " 
+              << vec_duration << " us" << std::endl;
+    
+    std::cout << "Time to process a range of " << sorted.size() 
+              << " elements with std::deque : " 
+              << deq_duration << " us" << std::endl;
+
     return 0;
 }
