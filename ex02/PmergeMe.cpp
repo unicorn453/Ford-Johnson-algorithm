@@ -390,7 +390,6 @@ void PmergeMe::generatePairsVec(size_t pairSize)
         }
     }
 }
-
 void PmergeMe::rearrangeBlocksByLastElement(size_t pairSize)
 {
     if (vec.size() < pairSize * 2)
@@ -445,9 +444,6 @@ void PmergeMe::rearrangeBlocksByLastElement(size_t pairSize)
 
 size_t PmergeMe::findPairedPosition(size_t pendIndex)
 {
-    if (pendIndex >= pairMax.size())
-        return vec.size();
-    
     int pairedValue = pairMax[pendIndex];
 
     return std::lower_bound(
@@ -473,29 +469,51 @@ void PmergeMe::sortRemainingElements(int valueOdd)
         vec.insert(vec.begin() + pos, valueOdd);
     }
 
+    if (pend.empty())
+        return;
+
     std::vector<bool> inserted(pend.size(), false);
 
-    for (size_t k = 0; k < jac.size(); ++k)
     {
-        size_t i = jac[k] - 1;
-        if (i >= pend.size() || inserted[i])
-            continue;
-
-        int value = pend[i];
-
-        size_t upperBound = findPairedPosition(i);
-
-        size_t pos = binaryCompareVec(
-            value,
-            0,
-            upperBound);
-
-        vec.insert(vec.begin() + pos, value);
-        inserted[i] = true;
+        size_t upper = findPairedPosition(0);
+        size_t pos = binaryCompareVec(pend[0], 0, upper);
+        vec.insert(vec.begin() + pos, pend[0]);
+        inserted[0] = true;
     }
 
+    for (size_t j = 1; j < jac.size(); ++j)
+    {
+        size_t start = jac[j - 1];
+        size_t end   = jac[j];
+
+        if (end > pend.size())
+            end = pend.size();
+
+        for (size_t i = end; i-- > start;)
+        {
+            if (inserted[i])
+                continue;
+
+            size_t upper = findPairedPosition(i);
+            size_t pos = binaryCompareVec(pend[i], 0, upper);
+
+            vec.insert(vec.begin() + pos, pend[i]);
+            inserted[i] = true;
+        }
+    }
+
+    for (size_t i = pend.size(); i-- > 0;)
+    {
+        if (!inserted[i])
+        {
+            size_t upper = findPairedPosition(i);
+            size_t pos = binaryCompareVec(pend[i], 0, upper);
+            vec.insert(vec.begin() + pos, pend[i]);
+        }
+    }
     pend.clear();
 }
+
 
 void PmergeMe::vectorSort()
 {
@@ -525,8 +543,9 @@ void PmergeMe::vectorSort()
 
     generatePairsVec(1);
     insertJacobsthal(1);
-
+    rearrangeBlocksByLastElement(1);
     sortRemainingElements(last_element);
+
 
     for (size_t i = 0; i < vec.size(); i++)
     {
