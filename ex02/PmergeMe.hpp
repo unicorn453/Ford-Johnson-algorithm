@@ -25,6 +25,7 @@ public:
 private:
     void generatePairsVec(size_t pairSize);
     void mergeSortVec();
+    size_t findPairedPosition(size_t pendIndex);
     void rearrangeBlocksByLastElement(size_t pairSize);
     void sortRemainingElements(int valueOdd);
     std::vector<int> vec;
@@ -38,4 +39,5 @@ private:
         size_t sizePairs
     );
     int _comparisons;
+    std::vector<int> pairMax;  // Store paired values for pending elements
 };
