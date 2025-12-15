@@ -70,27 +70,21 @@ int PmergeMe::binaryCompareDeq(int value, int a, int b)
     return a;
 }
 
-size_t PmergeMe::binaryCompareVec(int value, int a, int b)
+size_t PmergeMe::binaryCompareVec(int value, size_t a, size_t b)
 {
-    while (a <= b)
+    while (a < b)
     {
-        int mid = a + (b - a) / 2;
-        _comparisons++;
-        if (vec[mid] == value)
-        {
-            return mid + 1;
-        }
-        else if (vec[mid] < value)
-        {
+        size_t mid = a + (b - a) / 2;
+
+        ++_comparisons;
+        if (vec[mid] < value)
             a = mid + 1;
-        }
         else
-        {
-            b = mid - 1;
-        }
+            b = mid;
     }
     return a;
 }
+
 
 size_t find_max_iterations(size_t size)
 {
@@ -280,12 +274,10 @@ void PmergeMe::insertJacobsthal(size_t sizePairs)
         smalls.erase(smalls.begin());
     }
 
-    if (!pend.empty())
-    {
-        mainChain.insert(mainChain.end(), pend.begin(), pend.end());
-    }
-
+    // Preserve pend elements when updating vec
+    std::vector<int> tempPend = pend;
     vec = mainChain;
+    vec.insert(vec.end(), tempPend.begin(), tempPend.end());
 }
 
 void PmergeMe::mergeSortVec()
@@ -309,6 +301,7 @@ void PmergeMe::mergeSortVec()
         smalls.push_back(vec[i]);
         bigs.push_back(vec[i + 1]);
     }
+
 
     size_t numPairs = bigs.size();
     size_t max_iterations = find_max_iterations(numPairs);
@@ -350,8 +343,6 @@ void PmergeMe::generatePairsVec(size_t pairSize)
     size_t mainChainSize = vec.size() - pend.size();
     size_t blockSize = pairSize * 2;
     size_t maxBlockElements = (mainChainSize / blockSize) * blockSize;
-    size_t newPendsCount = mainChainSize - maxBlockElements;
-
 
     for (size_t i = 0; i < maxBlockElements; i += blockSize)
     {
@@ -377,14 +368,10 @@ void PmergeMe::generatePairsVec(size_t pairSize)
         }
     }
 
-    if (newPendsCount > 0)
+    for (size_t i = maxBlockElements; i < mainChainSize; i++)
     {
-        for (size_t i = maxBlockElements; i < mainChainSize; i++)
-        {
-            pend.push_back(vec[i]);
-        }
+        pend.push_back(vec[i]);
     }
-
 }
 
 void PmergeMe::rearrangeBlocksByLastElement(size_t pairSize)
@@ -432,21 +419,56 @@ void PmergeMe::rearrangeBlocksByLastElement(size_t pairSize)
     }
 
 
-    if (!pend.empty())
+    for (size_t i = 0; i < pend.size(); i++)
     {
-        for (size_t i = 0; i < pend.size(); i++)
-        {
-            tempVec.push_back(pend[i]);
-        }
+        tempVec.push_back(pend[i]);
     }
+    
     vec = tempVec;
 }
+
+void PmergeMe::sortRemainingElements(int valueOdd)
+{
+    if (pend.empty() && valueOdd == -1)
+        return;
+
+
+    size_t sortedSize = vec.size() - pend.size();
+    
+    vec.resize(sortedSize);
+
+    if (valueOdd != -1)
+    {
+        size_t insertPos = binaryCompareVec(valueOdd, 0, vec.size());
+        vec.insert(vec.begin() + insertPos, valueOdd);
+    }
+    
+    for (size_t i = 0; i < pend.size(); ++i)
+    {
+        int value = pend[i];
+        size_t insertPos = binaryCompareVec(value, 0, vec.size());
+        
+        vec.insert(vec.begin() + insertPos, value);
+    }
+    
+    pend.clear();
+}
+
 
 void PmergeMe::vectorSort()
 {
     if (vec.size() <= 1)
         return;
 
+
+    size_t original_size = vec.size();
+    bool has_odd = (original_size % 2 != 0);
+    int last_element = -1;
+    if (has_odd)
+    {
+        last_element = vec[original_size - 1];
+        vec.pop_back();
+    }
     mergeSortVec();
 
     size_t max_pair_size = find_max_iterations(vec.size());
@@ -454,14 +476,16 @@ void PmergeMe::vectorSort()
 
     for (size_t level = max_pair_size; level > 0; level--)
     {
-        generatePairsVec(pow(2, level));
-        insertJacobsthal(pow(2, level));
-        rearrangeBlocksByLastElement(pow(2, level));
+        size_t pairSize = 1 << level;
+        generatePairsVec(pairSize);
+        insertJacobsthal(pairSize);
+        rearrangeBlocksByLastElement(pairSize);
     }
-
 
     generatePairsVec(1);
     insertJacobsthal(1);
+
+    sortRemainingElements(last_element);
 
     for (size_t i = 0; i < vec.size(); i++)
     {

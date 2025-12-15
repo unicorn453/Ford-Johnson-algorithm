@@ -26,12 +26,13 @@ private:
     void generatePairsVec(size_t pairSize);
     void mergeSortVec();
     void rearrangeBlocksByLastElement(size_t pairSize);
+    void sortRemainingElements(int valueOdd);
     std::vector<int> vec;
     std::deque<int> deq;
     std::vector<int> pend;
     std::vector<int> smalls;
     std::vector<int> bigs;
-    size_t binaryCompareVec(int value, int a, int b);
+    size_t binaryCompareVec(int value, size_t a, size_t b);
     int binaryCompareDeq(int value, int a, int b);
     void insertJacobsthal(
         size_t sizePairs
