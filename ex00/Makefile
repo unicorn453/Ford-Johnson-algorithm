@@ -3,7 +3,7 @@ SRCS = main.cpp \
 	  BitcoinExchange.cpp 
 OBJS = $(SRCS:.cpp=.o)
 
-NAME = PmergeMe
+NAME = btc
 all: $(NAME)
 
 $(NAME): $(OBJS)
