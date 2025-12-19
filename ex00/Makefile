@@ -1,4 +1,4 @@
-CPPFLAGS = c++ -Wall -Wextra -Werror -std=c++98
+CPPFLAGS = c++ -Wall -Wextra -Werror -std=c++17
 SRCS = main.cpp \
 	  BitcoinExchange.cpp 
 OBJS = $(SRCS:.cpp=.o)
